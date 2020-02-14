@@ -36,8 +36,8 @@ func main() {
 			os.Exit(0)
 		}
 
-		timeout := time.Duration(*flTimeout) * time.Second
 		// allow for osqueryd to create the socket path
+		timeout := time.Duration(*flTimeout) * time.Second
 		time.Sleep(2 * time.Second)
 
 		server, err := osquery.NewExtensionManagerServer("community_id", *flSocketPath, osquery.ServerTimeout(timeout))

@@ -1,6 +1,10 @@
 # Osquery-GO-CommunityID
+<p align="center">
+    <img src=".img/heart.png">
+</p>
 
-This project provides a table in Osquery to calculate the communityID of a network connection.
+* [Creating my second Osquery extension with osquery-go](https://holdmybeersecurity.com/creating-my-second-osquery-extension-with-osquery-go)
+
 
 ## Local dev setup
 1. Install golang
@@ -13,7 +17,7 @@ This project provides a table in Osquery to calculate the communityID of a netwo
 ## Build executables
 1. `GOOS=windows GOARCH=amd64 go build -o osquery_community_id_ext.exe osquery_community_id_ext.go`
     1. Compile exeutable for Windows
-1. `GOOS=darwin GOARCH=amd64 go build -o osquery_community_id_ext.macho osquery_community_id_ext.go`
+1. `GOOS=darwin GOARCH=amd64 go build -o osquery_community_id.ext osquery_community_id_ext.go`
     1. Compile exeutable for macOS
 
 
@@ -25,6 +29,8 @@ This project provides a table in Osquery to calculate the communityID of a netwo
 * [How to iterate over a Map using for loop in Go?](https://www.golangprograms.com/how-to-iterate-over-a-map-using-for-loop-in-go.html)
 * [Github - CptOfEvilMinions/osquery-py-communityid](https://github.com/CptOfEvilMinions/osquery-py-communityid/blob/master/osquery_community_id.py)
 * [How To Build Go Executables for Multiple Platforms on Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/how-to-build-go-executables-for-multiple-platforms-on-ubuntu-16-04)
-* []()
+* [Github - kolide/launcher - launcher-extension.go](https://github.com/kolide/launcher/blob/master/cmd/launcher.ext/launcher-extension.go)
+* [Process and socket auditing with osquery](https://osquery.readthedocs.io/en/stable/deployment/process-auditing/#osquery-events-optimization)
+* [Extending Osquery with Go](https://blog.gopheracademy.com/advent-2017/osquery-sdk/)
 * []()
 * []()
