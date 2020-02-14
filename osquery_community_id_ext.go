@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"flag"
 	"log"
 	"net"
 	"os"
 	"strconv"
+	"time"
 
+	"github.com/kolide/kit/version"
 	"github.com/kolide/osquery-go"
 	"github.com/kolide/osquery-go/plugin/table"
 	"github.com/satta/gommunityid"
@@ -17,22 +19,57 @@ import (
 // This function registers this Osquery extension using the user provided socket path
 // main output: None
 func main() {
+	// This is a terrible terrible terrible implementation but it works as PoC.
+	// Need to figure out var type of server to move it outside if/else
 	if len(os.Args) != 2 {
-		log.Fatalf(`Usage: %s SOCKET_PATH`, os.Args[0])
+		var (
+			flSocketPath = flag.String("socket", "", "")
+			flTimeout    = flag.Int("timeout", 0, "")
+			//flVerbose    = flag.Bool("verbose", false, "")
+			flVersion = flag.Bool("version", false, "Print  version and exit")
+			_         = flag.Int("interval", 0, "")
+		)
+		flag.Parse()
+
+		if *flVersion {
+			version.PrintFull()
+			os.Exit(0)
+		}
+
+		timeout := time.Duration(*flTimeout) * time.Second
+		// allow for osqueryd to create the socket path
+		time.Sleep(2 * time.Second)
+
+		server, err := osquery.NewExtensionManagerServer("community_id", *flSocketPath, osquery.ServerTimeout(timeout))
+		_ = server
+		if err != nil {
+			log.Fatalf("Error creating extension: %s\n", err)
+		}
+
+		// Create and register a new table plugin with the server.
+		// table.NewPlugin requires the table plugin name,
+		// a slice of Columns and a Generate function.
+		server.RegisterPlugin(table.NewPlugin("community_id", CommunityIDColumns(), CommunityIDTableGenerate))
+		if err := server.Run(); err != nil {
+			log.Fatalln(err)
+		}
+
+	} else {
+		server, err := osquery.NewExtensionManagerServer("community_id", os.Args[1])
+		_ = server
+		if err != nil {
+			log.Fatalf("Error creating extension: %s\n", err)
+		}
+
+		// Create and register a new table plugin with the server.
+		// table.NewPlugin requires the table plugin name,
+		// a slice of Columns and a Generate function.
+		server.RegisterPlugin(table.NewPlugin("community_id", CommunityIDColumns(), CommunityIDTableGenerate))
+		if err := server.Run(); err != nil {
+			log.Fatalln(err)
+		}
 	}
 
-	server, err := osquery.NewExtensionManagerServer("community_id", os.Args[1])
-	if err != nil {
-		log.Fatalf("Error creating extension: %s\n", err)
-	}
-
-	// Create and register a new table plugin with the server.
-	// table.NewPlugin requires the table plugin name,
-	// a slice of Columns and a Generate function.
-	server.RegisterPlugin(table.NewPlugin("community_id", CommunityIDColumns(), CommunityIDTableGenerate))
-	if err := server.Run(); err != nil {
-		log.Fatalln(err)
-	}
 }
 
 // CommunityIDColumns input: None
@@ -65,8 +102,6 @@ func CommunityIDTableGenerate(ctx context.Context, queryContext table.QueryConte
 
 	// Generate community ID
 	communityID := GenerateCommunityID(srcIP, uint16(srcPort), dstIP, uint16(dstPort), uint8(protocol))
-
-	fmt.Println("%v\n%v\n%v\n%v\n%v\n", srcIP, srcPort, dstIP, dstPort, protocol)
 
 	// Return data to render Osquery results table
 	return []map[string]string{

@@ -1,6 +1,6 @@
+*.exe
+*.elf
+*.macho
 pkg/
 src/
-osquery_community_id_ext.exe
-osquery_community_id_ext.macho
-osquery_community_id_ext.elf
 .DS_Store
