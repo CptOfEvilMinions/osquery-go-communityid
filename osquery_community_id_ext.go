@@ -19,9 +19,15 @@ import (
 // This function registers this Osquery extension using the user provided socket path
 // main output: None
 func main() {
-	// This is a terrible terrible terrible implementation but it works as PoC.
-	// Need to figure out var type of server to move it outside if/else
-	if len(os.Args) != 2 {
+	// Init server and error for NewExtensionManagerServer
+	var server *osquery.ExtensionManagerServer
+	var err error
+
+	// If user specificies the Osquery socket use it first
+	// Else use default location
+	if len(os.Args) == 2 {
+		server, err = osquery.NewExtensionManagerServer("community_id", os.Args[1])
+	} else {
 		var (
 			flSocketPath = flag.String("socket", "", "")
 			flTimeout    = flag.Int("timeout", 0, "")
@@ -40,34 +46,21 @@ func main() {
 		timeout := time.Duration(*flTimeout) * time.Second
 		time.Sleep(2 * time.Second)
 
-		server, err := osquery.NewExtensionManagerServer("community_id", *flSocketPath, osquery.ServerTimeout(timeout))
-		_ = server
-		if err != nil {
-			log.Fatalf("Error creating extension: %s\n", err)
-		}
+		server, err = osquery.NewExtensionManagerServer("community_id", *flSocketPath, osquery.ServerTimeout(timeout))
+	}
 
-		// Create and register a new table plugin with the server.
-		// table.NewPlugin requires the table plugin name,
-		// a slice of Columns and a Generate function.
-		server.RegisterPlugin(table.NewPlugin("community_id", CommunityIDColumns(), CommunityIDTableGenerate))
-		if err := server.Run(); err != nil {
-			log.Fatalln(err)
-		}
+	// If initializing server fails exit
+	if err != nil {
+		log.Fatalf("Error creating extension: %s\n", err)
+	}
 
-	} else {
-		server, err := osquery.NewExtensionManagerServer("community_id", os.Args[1])
-		_ = server
-		if err != nil {
-			log.Fatalf("Error creating extension: %s\n", err)
-		}
-
-		// Create and register a new table plugin with the server.
-		// table.NewPlugin requires the table plugin name,
-		// a slice of Columns and a Generate function.
-		server.RegisterPlugin(table.NewPlugin("community_id", CommunityIDColumns(), CommunityIDTableGenerate))
-		if err := server.Run(); err != nil {
-			log.Fatalln(err)
-		}
+	// Create and register a new table plugin with the server.
+	// table.NewPlugin requires the table plugin name,
+	// a slice of Columns and a Generate function.
+	// If server.Run() fails exti
+	server.RegisterPlugin(table.NewPlugin("community_id", CommunityIDColumns(), CommunityIDTableGenerate))
+	if err := server.Run(); err != nil {
+		log.Fatalln(err)
 	}
 
 }
