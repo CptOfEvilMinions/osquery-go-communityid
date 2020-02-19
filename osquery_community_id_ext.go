@@ -5,11 +5,9 @@ import (
 	"flag"
 	"log"
 	"net"
-	"os"
 	"strconv"
 	"time"
 
-	"github.com/kolide/kit/version"
 	"github.com/kolide/osquery-go"
 	"github.com/kolide/osquery-go/plugin/table"
 	"github.com/satta/gommunityid"
@@ -19,35 +17,18 @@ import (
 // This function registers this Osquery extension using the user provided socket path
 // main output: None
 func main() {
-	// Init server and error for NewExtensionManagerServer
-	var server *osquery.ExtensionManagerServer
-	var err error
+	// Extract command line arguments
+	flSocketPath := flag.String("socket", "", "path to osqueryd extensions socket")
+	flTimeout := flag.Int("timeout", 0, "")
+	flag.Int("interval", 0, "")
+	flag.Parse()
 
-	// If user specificies the Osquery socket use it first
-	// Else use default location
-	if len(os.Args) == 2 {
-		server, err = osquery.NewExtensionManagerServer("community_id", os.Args[1])
-	} else {
-		var (
-			flSocketPath = flag.String("socket", "", "")
-			flTimeout    = flag.Int("timeout", 0, "")
-			//flVerbose    = flag.Bool("verbose", false, "")
-			flVersion = flag.Bool("version", false, "Print  version and exit")
-			_         = flag.Int("interval", 0, "")
-		)
-		flag.Parse()
+	// allow for osqueryd to create the socket path
+	timeout := time.Duration(*flTimeout) * time.Second
+	time.Sleep(2 * time.Second)
 
-		if *flVersion {
-			version.PrintFull()
-			os.Exit(0)
-		}
-
-		// allow for osqueryd to create the socket path
-		timeout := time.Duration(*flTimeout) * time.Second
-		time.Sleep(2 * time.Second)
-
-		server, err = osquery.NewExtensionManagerServer("community_id", *flSocketPath, osquery.ServerTimeout(timeout))
-	}
+	// initializing server objecet
+	server, err := osquery.NewExtensionManagerServer("community_id", *flSocketPath, osquery.ServerTimeout(timeout))
 
 	// If initializing server fails exit
 	if err != nil {
@@ -56,8 +37,8 @@ func main() {
 
 	// Create and register a new table plugin with the server.
 	// table.NewPlugin requires the table plugin name,
-	// a slice of Columns and a Generate function.
-	// If server.Run() fails exti
+	// a slice of Columns and a generate function.
+	// If server.Run() fails exit
 	server.RegisterPlugin(table.NewPlugin("community_id", CommunityIDColumns(), CommunityIDTableGenerate))
 	if err := server.Run(); err != nil {
 		log.Fatalln(err)

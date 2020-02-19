@@ -1,7 +1,6 @@
 *.exe
 *.elf
 *.macho
-pkg/
-src/
 .DS_Store
 osquery-go-communityid
+osquery_community_id.ext

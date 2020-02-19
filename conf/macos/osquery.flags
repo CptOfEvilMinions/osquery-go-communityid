@@ -12,7 +12,6 @@
 --disable_watchdog=true
 --watchdog_level=-1
 --disable_events=false
---allow_unsafe
 --extensions_autoload=/var/osquery/extensions.load
 --extensions_interval=10
 --extensions_timeout=90
